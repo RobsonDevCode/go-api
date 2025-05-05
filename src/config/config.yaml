@@ -1,0 +1,10 @@
+database:
+  driver: "{fill_in_config}"
+  host: "{fill_in_config}"
+  port: 0000
+  name: "{fill_in_config}"
+  username: "{fill_in_config}"
+  password: "{fill_in_config}"
+  sslMode: "{fill_in_config}"
+  allowZeroDateTime: true
+
