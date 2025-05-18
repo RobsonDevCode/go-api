@@ -6,24 +6,24 @@ import (
 	"time"
 
 	"github.com/RobsonDevCode/go-profile-service/src/internal/caching"
-	"github.com/RobsonDevCode/go-profile-service/src/internal/domain"
+	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	profileInterfaces "github.com/RobsonDevCode/go-profile-service/src/internal/repository/interfaces"
 	"github.com/google/uuid"
 )
 
-type ProfileRetrivelService struct {
-	profileRetrivelRepo profileInterfaces.ProfileRetrievalRepository
-	cache               *caching.Cache
+type ProfileRetrievalService struct {
+	profileRetrievalRepo profileInterfaces.ProfileRetrievalRepository
+	cache                *caching.Cache
 }
 
-func NewProfileRetrievalService(repo profileInterfaces.ProfileRetrievalRepository, cache *caching.Cache) *ProfileRetrivelService {
-	return &ProfileRetrivelService{
-		profileRetrivelRepo: repo,
-		cache:               cache,
+func NewProfileRetrievalService(repo profileInterfaces.ProfileRetrievalRepository, cache *caching.Cache) *ProfileRetrievalService {
+	return &ProfileRetrievalService{
+		profileRetrievalRepo: repo,
+		cache:                cache,
 	}
 }
 
-func (s *ProfileRetrivelService) GetById(id uuid.UUID, ctx context.Context) (domain.Profile, error) {
+func (s *ProfileRetrievalService) GetById(id uuid.UUID, ctx context.Context) (domain.Profile, error) {
 	key := fmt.Sprintf("profile-%s", id)
 
 	result, err := s.cache.GetOrCreate(key, time.Minute*3, func() (interface{}, error) {
@@ -31,7 +31,7 @@ func (s *ProfileRetrivelService) GetById(id uuid.UUID, ctx context.Context) (dom
 			return domain.Profile{}, fmt.Errorf("argument error, id can't be null")
 		}
 
-		profile, err := s.profileRetrivelRepo.GetById(id, ctx)
+		profile, err := s.profileRetrievalRepo.GetById(id, ctx)
 		if err != nil {
 			return domain.Profile{}, err
 		}
@@ -51,7 +51,7 @@ func (s *ProfileRetrivelService) GetById(id uuid.UUID, ctx context.Context) (dom
 	return profile, nil
 }
 
-func (s *ProfileRetrivelService) ProfileExists(id uuid.UUID, ctx context.Context) (bool, error) {
+func (s *ProfileRetrievalService) ProfileExists(id uuid.UUID, ctx context.Context) (bool, error) {
 	key := fmt.Sprintf("exists-%s", id)
 	result, err := s.cache.GetOrCreate(key, time.Minute*5, func() (interface{}, error) {
 
@@ -59,7 +59,7 @@ func (s *ProfileRetrivelService) ProfileExists(id uuid.UUID, ctx context.Context
 			return false, fmt.Errorf("argument error, user id can't be null")
 		}
 
-		exists, err := s.profileRetrivelRepo.ProfileExits(id, ctx)
+		exists, err := s.profileRetrievalRepo.ProfileExits(id, ctx)
 		if err != nil {
 			return false, err
 		}

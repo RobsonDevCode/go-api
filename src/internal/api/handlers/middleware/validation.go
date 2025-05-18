@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/RobsonDevCode/go-profile-service/src/internal/domain"
+	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	"github.com/go-playground/validator/v10"
 )
 

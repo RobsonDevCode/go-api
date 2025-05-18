@@ -3,11 +3,13 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	validator "github.com/RobsonDevCode/go-profile-service/src/internal/api/handlers/middleware"
 	client "github.com/RobsonDevCode/go-profile-service/src/internal/clients/user"
-	"github.com/RobsonDevCode/go-profile-service/src/internal/domain"
+	"github.com/RobsonDevCode/go-profile-service/src/internal/config"
+	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	"github.com/RobsonDevCode/go-profile-service/src/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -16,13 +18,13 @@ import (
 )
 
 type ProfileHandler struct {
-	readerService *services.ProfileRetrivelService
+	readerService *services.ProfileRetrievalService
 	writerService *services.ProfileWriterService
 	userClient    *client.UserClient
 	logger        *zap.Logger
 }
 
-func NewProfileHandler(readerService *services.ProfileRetrivelService,
+func NewProfileHandler(readerService *services.ProfileRetrievalService,
 	writerService *services.ProfileWriterService,
 	userClient *client.UserClient,
 	logger *zap.Logger) *ProfileHandler {
@@ -34,12 +36,54 @@ func NewProfileHandler(readerService *services.ProfileRetrivelService,
 	}
 }
 
-func (h *ProfileHandler) Register(router *gin.RouterGroup) {
+func (h *ProfileHandler) Register(router *gin.RouterGroup, config *config.Config, logger *zap.Logger) {
+
 	profile := router.Group("")
+	profile.Use(validator.JWTAuthMiddleWare(config, logger))
 	{
 		profile.GET(":id", h.GetProfile)
 		profile.POST("", h.CreateProfile)
 	}
+}
+
+func (h *ProfileHandler) GetPaged(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing profile id param"})
+		return
+	}
+
+	var pageinationOptions domain.PageinationOptions
+
+	pageString := c.Param("page")
+	sizeString := c.Param("size")
+	if pageString == "" && sizeString == "" {
+		pageinationOptions = domain.NewPaginationOptions()
+	}
+
+	if (pageString == "" && sizeString != "") ||
+		(pageString != "" && sizeString == "") {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "paging request invalid both page and size have to be present"})
+		return
+	}
+
+	page, err := strconv.Atoi(pageString)
+	if err != nil {
+		h.logger.Sugar().Errorf("error converting page value, %w", err)
+		return
+	}
+
+	size, err := strconv.Atoi(sizeString)
+	if err != nil {
+		h.logger.Sugar().Errorf("error converting size value, %w", err)
+		return
+	}
+
+	pageinationOptions = domain.PageinationOptions{
+		Page: page,
+		Size: size,
+	}
+
 }
 
 func (h *ProfileHandler) GetProfile(c *gin.Context) {
@@ -48,10 +92,9 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 
 	id := c.Param("id")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing profile id paramter",
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Missing profile id param",
 		})
-		c.Abort()
 		return
 	}
 

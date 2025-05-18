@@ -42,7 +42,7 @@ func main() {
 
 	ProfileHandler := handlers.NewProfileHandler(profileRetrievalService, profileWriterService, userClient, logger)
 
-	router := Setup(ProfileHandler)
+	router := Setup(ProfileHandler, config, logger)
 
 	if err := router.Run(":8080"); err != nil {
 		logger.Sugar().Errorf("Failed to start server: %v", err)
@@ -50,12 +50,11 @@ func main() {
 
 }
 
-func Setup(
-	profileHandler *handlers.ProfileHandler) *gin.Engine {
+func Setup(profileHandler *handlers.ProfileHandler, config *config.Config, logger *zap.Logger) *gin.Engine {
 	router := gin.Default()
 	api := router.Group("profile/v1")
 	{
-		profileHandler.Register(api)
+		profileHandler.Register(api, config, logger)
 	}
 
 	return router

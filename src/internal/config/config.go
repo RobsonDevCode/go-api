@@ -12,6 +12,7 @@ const FilePath = "C:/Users/RobsonBasquill-Lipsc/Repos/Test/go-api/src/config/con
 type Config struct {
 	Database          DBConfig
 	UserClientOptions UserClient
+	JWTSettings       JWTSettings
 }
 
 type DBConfig struct {
@@ -27,6 +28,14 @@ type DBConfig struct {
 
 type UserClient struct {
 	URL string `yaml:"baseUrl"`
+}
+
+type JWTSettings struct {
+	Issuer                string `yaml:"issuer"`
+	Audience              string `yaml:"audience"`
+	ExpiresInMinutes      int    `yaml:"expiresInMinutes"`
+	RefreshTokenExpiresIn int    `yaml:"refreshTokenExpiresIn"`
+	Key                   string `yaml:"key"`
 }
 
 func Load() (*Config, error) {

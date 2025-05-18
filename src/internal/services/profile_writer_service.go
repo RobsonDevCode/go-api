@@ -6,20 +6,20 @@ import (
 	"sync"
 
 	client "github.com/RobsonDevCode/go-profile-service/src/internal/clients/user"
-	"github.com/RobsonDevCode/go-profile-service/src/internal/domain"
+	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	profileInterfaces "github.com/RobsonDevCode/go-profile-service/src/internal/repository/interfaces"
 	"go.uber.org/zap"
 )
 
 type ProfileWriterService struct {
 	profileWriterRepo profileInterfaces.ProfileWriterRepository
-	reader            ProfileRetrivelService
+	reader            ProfileRetrievalService
 	userClient        *client.UserClient
 	logger            *zap.Logger
 }
 
 func NewProfileWriterService(repo profileInterfaces.ProfileWriterRepository,
-	reader ProfileRetrivelService,
+	reader ProfileRetrievalService,
 	userClient *client.UserClient,
 	logger zap.Logger) *ProfileWriterService {
 	return &ProfileWriterService{

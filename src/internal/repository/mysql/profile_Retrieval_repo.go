@@ -33,6 +33,7 @@ func (r *ProfileRetrievalRepository) GetById(id uuid.UUID, ctx context.Context) 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("row error: %v", err)
 	}
+	defer rows.Close()
 
 	return &profile, nil
 }
