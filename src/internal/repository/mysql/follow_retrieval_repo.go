@@ -8,15 +8,18 @@ import (
 	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	followInterface "github.com/RobsonDevCode/go-profile-service/src/internal/repository/interfaces/follow"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type FollowerRetrivalRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *zap.Logger
 }
 
-func NewFollowerRetrivalRepository(db *sql.DB) followInterface.FollowerRetrivalRepository {
+func NewFollowerRetrivalRepository(db *sql.DB, logger *zap.Logger) followInterface.FollowerRetrivalRepository {
 	return &FollowerRetrivalRepository{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
@@ -53,6 +56,8 @@ func (r *FollowerRetrivalRepository) GetPage(id uuid.UUID, pageinationOptions do
 	if err != nil {
 		return nil, fmt.Errorf("error getting count: %w", err)
 	}
+
+	r.logger.Info("succesful read from db")
 
 	return &domain.PagedResult[[]domain.User]{
 		Items: users,

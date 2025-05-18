@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	validator "github.com/RobsonDevCode/go-profile-service/src/internal/api/handlers/middleware"
@@ -36,54 +35,15 @@ func NewProfileHandler(readerService *services.ProfileRetrievalService,
 	}
 }
 
-func (h *ProfileHandler) Register(router *gin.RouterGroup, config *config.Config, logger *zap.Logger) {
+func (h *ProfileHandler) Register(router *gin.RouterGroup,
+	config *config.Config, logger *zap.Logger) {
 
-	profile := router.Group("")
+	profile := router.Group("profile")
 	profile.Use(validator.JWTAuthMiddleWare(config, logger))
 	{
 		profile.GET(":id", h.GetProfile)
 		profile.POST("", h.CreateProfile)
 	}
-}
-
-func (h *ProfileHandler) GetPaged(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing profile id param"})
-		return
-	}
-
-	var pageinationOptions domain.PageinationOptions
-
-	pageString := c.Param("page")
-	sizeString := c.Param("size")
-	if pageString == "" && sizeString == "" {
-		pageinationOptions = domain.NewPaginationOptions()
-	}
-
-	if (pageString == "" && sizeString != "") ||
-		(pageString != "" && sizeString == "") {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "paging request invalid both page and size have to be present"})
-		return
-	}
-
-	page, err := strconv.Atoi(pageString)
-	if err != nil {
-		h.logger.Sugar().Errorf("error converting page value, %w", err)
-		return
-	}
-
-	size, err := strconv.Atoi(sizeString)
-	if err != nil {
-		h.logger.Sugar().Errorf("error converting size value, %w", err)
-		return
-	}
-
-	pageinationOptions = domain.PageinationOptions{
-		Page: page,
-		Size: size,
-	}
-
 }
 
 func (h *ProfileHandler) GetProfile(c *gin.Context) {
@@ -100,13 +60,13 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 
 	profileId, err := uuid.Parse(id)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{
+		c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{
 			"validation error": "Invalid id sent",
 		})
 	}
 
 	ctx := c.Request.Context()
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	profile, err := h.readerService.GetById(profileId, ctx)

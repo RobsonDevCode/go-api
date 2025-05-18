@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/RobsonDevCode/go-profile-service/src/internal/domain"
+	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	profileInterfaces "github.com/RobsonDevCode/go-profile-service/src/internal/repository/interfaces"
 
 	"github.com/google/uuid"
@@ -33,7 +33,6 @@ func (r *ProfileRetrievalRepository) GetById(id uuid.UUID, ctx context.Context) 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("row error: %v", err)
 	}
-	defer rows.Close()
 
 	return &profile, nil
 }

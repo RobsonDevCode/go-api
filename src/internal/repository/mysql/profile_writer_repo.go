@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/RobsonDevCode/go-profile-service/src/internal/domain"
+	domain "github.com/RobsonDevCode/go-profile-service/src/internal/domain/models"
 	profileInterfaces "github.com/RobsonDevCode/go-profile-service/src/internal/repository/interfaces"
 	"go.uber.org/zap"
 )

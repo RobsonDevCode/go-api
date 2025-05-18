@@ -36,13 +36,16 @@ func main() {
 
 	profileRetrievalRepo := mysql.NewProfileRetrievalRepository(database)
 	profileWriterRepo := mysql.NewWriterRetrievalRepository(database, logger)
+	followRetrievalRepo := mysql.NewFollowerRetrivalRepository(database, logger)
 
 	profileRetrievalService := services.NewProfileRetrievalService(profileRetrievalRepo, cache)
 	profileWriterService := services.NewProfileWriterService(profileWriterRepo, *profileRetrievalService, userClient, *logger)
+	followRetrievalService := services.NewFollowerRetrivalService(followRetrievalRepo, *profileRetrievalService, *logger)
 
-	ProfileHandler := handlers.NewProfileHandler(profileRetrievalService, profileWriterService, userClient, logger)
+	profileHandler := handlers.NewProfileHandler(profileRetrievalService, profileWriterService, userClient, logger)
+	followerHandler := handlers.NewFollowerHandler(profileRetrievalService, followRetrievalService, logger)
 
-	router := Setup(ProfileHandler, config, logger)
+	router := Setup(profileHandler, followerHandler, config, logger)
 
 	if err := router.Run(":8080"); err != nil {
 		logger.Sugar().Errorf("Failed to start server: %v", err)
@@ -50,11 +53,14 @@ func main() {
 
 }
 
-func Setup(profileHandler *handlers.ProfileHandler, config *config.Config, logger *zap.Logger) *gin.Engine {
+func Setup(profileHandler *handlers.ProfileHandler,
+	followerHandler *handlers.FollowerHandler,
+	config *config.Config, logger *zap.Logger) *gin.Engine {
 	router := gin.Default()
 	api := router.Group("profile/v1")
 	{
 		profileHandler.Register(api, config, logger)
+		followerHandler.Register(api, config, logger)
 	}
 
 	return router
